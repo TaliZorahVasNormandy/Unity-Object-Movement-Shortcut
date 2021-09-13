@@ -23,6 +23,13 @@ public class moveObjectShortcut : EditorWindow {
     //Add Settings to Editor Menu
     void OnGUI()
     {
+        EditorGUILayout.LabelField("This tool allows you to move any selected objects");
+        EditorGUILayout.LabelField("without having to grab its pivot handles");
+        EditorGUILayout.LabelField("Usage:");
+        EditorGUILayout.LabelField("CTRL + Right-click drag:        X-Axis");
+        EditorGUILayout.LabelField("Shift + Right-click drag:        Z-Axis");
+        EditorGUILayout.LabelField("CTRL + Shift + Right-click drag:        Y-Axis");
+        EditorGUILayout.LabelField("");
         sensitivity = EditorGUILayout.FloatField("Sensitivity", sensitivity);
         globalDisable = EditorGUILayout.Toggle("Disable all Shortcuts", globalDisable);
     }
