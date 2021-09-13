@@ -13,19 +13,20 @@ public class moveObjectShortcut : EditorWindow {
     private static float _sensitivity = sensitivity;
     public static bool globalDisable = false;
 
+    //Create Context Menu Entry
     [MenuItem("Tools/Move Object Shortcut")]
     static void Init()
     {
         var window = (moveObjectShortcut)GetWindow(typeof(moveObjectShortcut));
         window.Show();
     }
-
+    //Add Settings to Editor Menu
     void OnGUI()
     {
         sensitivity = EditorGUILayout.FloatField("Sensitivity", sensitivity);
         globalDisable = EditorGUILayout.Toggle("Disable all Shortcuts", globalDisable);
     }
-
+    //Recall and save settings into Editor Prefs
     void OnFocus()
     {
         if (EditorPrefs.HasKey("sensitivity")) sensitivity = EditorPrefs.GetFloat("sensitivity");
@@ -118,7 +119,11 @@ public class moveObjectShortcut : EditorWindow {
         //calculate distance from view to selected object, I'm using the first selected object here but this could also use an average
         float dist = Vector3.Distance(selection[0].transform.position, sceneView.camera.transform.position);
         _sensitivity = sensitivity * dist * 0.1f;
-
+        if (selection.Length > 0)
+        {
+            float dist = Vector3.Distance(selection[0].transform.position, sceneView.camera.transform.position);
+            _sensitivity = sensitivity * dist * 0.1f;
+        }
         if (axis == "x")
         {
             distance.y = 0;
@@ -143,6 +148,9 @@ public class moveObjectShortcut : EditorWindow {
             Vector3 move = new Vector3(0, 0, distance.x);
             for (int i = 0; i < selection.Length; i++) selection[i].transform.position = selection[i].transform.position + move;
         }
-        Event.current.Use();
+        if (selection.Length > 0)
+        {
+            Event.current.Use();
+        }
     }
 }
