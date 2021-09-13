@@ -117,8 +117,6 @@ public class moveObjectShortcut : EditorWindow {
         //Disable right click viewport navigation
         HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
         //calculate distance from view to selected object, I'm using the first selected object here but this could also use an average
-        float dist = Vector3.Distance(selection[0].transform.position, sceneView.camera.transform.position);
-        _sensitivity = sensitivity * dist * 0.1f;
         if (selection.Length > 0)
         {
             float dist = Vector3.Distance(selection[0].transform.position, sceneView.camera.transform.position);
@@ -129,25 +127,21 @@ public class moveObjectShortcut : EditorWindow {
             distance.y = 0;
             distance.z = 0;
             distance.x = -distance.x;
-            distance = distance * _sensitivity;
-            for (int i = 0; i < selection.Length; i++) selection[i].transform.position = selection[i].transform.position + distance;
         }
         if (axis == "y")
         {
             distance.x = 0;
             distance.z = 0;
             distance.y = -distance.y;
-            distance = distance * _sensitivity;
-            for (int i = 0; i < selection.Length; i++) selection[i].transform.position = selection[i].transform.position + distance;
         }
         if (axis== "z")
         {
             distance.y = 0;
             distance.z = distance.x;
-            distance = distance * _sensitivity;
-            Vector3 move = new Vector3(0, 0, distance.x);
-            for (int i = 0; i < selection.Length; i++) selection[i].transform.position = selection[i].transform.position + move;
+            distance.x = 0;
         }
+        distance = distance * _sensitivity;
+        for (int i = 0; i < selection.Length; i++) selection[i].transform.position = selection[i].transform.position + distance;
         if (selection.Length > 0)
         {
             Event.current.Use();
