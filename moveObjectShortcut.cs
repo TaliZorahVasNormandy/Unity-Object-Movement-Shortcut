@@ -26,6 +26,22 @@ public class moveObjectShortcut : EditorWindow {
         globalDisable = EditorGUILayout.Toggle("Disable all Shortcuts", globalDisable);
     }
 
+    void OnFocus()
+    {
+        if (EditorPrefs.HasKey("sensitivity")) sensitivity = EditorPrefs.GetFloat("sensitivity");
+        if (EditorPrefs.HasKey("globalDisable")) globalDisable = EditorPrefs.GetBool("globalDisable");
+    }
+    void OnLostFocus()
+    {
+        EditorPrefs.SetFloat("sensitivity", sensitivity);
+        EditorPrefs.SetBool("globalDisable", globalDisable);
+    }
+    void OnDestroy()
+    {
+        EditorPrefs.SetFloat("sensitivity", sensitivity);
+        EditorPrefs.SetBool("globalDisable", globalDisable);
+    }
+
     static moveObjectShortcut(){
 		//avoid registering twice to the SceneGUI delegate
 		SceneView.duringSceneGui -= OnSceneView;
