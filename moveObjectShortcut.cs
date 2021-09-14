@@ -11,7 +11,7 @@ public class moveObjectShortcut : EditorWindow {
     private static Vector2 lastMousePosition = Vector2.zero;
     public static float sensitivity = 0.01f;
     private static float _sensitivity = sensitivity;
-    public static bool globalDisable = false;
+    public static bool globalEnable = false;
     private static bool toolDisable = false;
 
     //Create Context Menu Entry
@@ -34,23 +34,23 @@ public class moveObjectShortcut : EditorWindow {
         EditorGUILayout.LabelField("CTRL + Shift + Right-click drag:        Y-Axis");
         EditorGUILayout.LabelField("");
         sensitivity = EditorGUILayout.FloatField("Sensitivity", sensitivity);
-        globalDisable = EditorGUILayout.Toggle("Disable all Shortcuts", globalDisable);
+        globalEnable = EditorGUILayout.Toggle("Enable", globalEnable);
     }
     //Recall and save settings into Editor Prefs
     void OnFocus()
     {
         if (EditorPrefs.HasKey("sensitivity")) sensitivity = EditorPrefs.GetFloat("sensitivity");
-        if (EditorPrefs.HasKey("globalDisable")) globalDisable = EditorPrefs.GetBool("globalDisable");
+        if (EditorPrefs.HasKey("globalEnable")) globalEnable = EditorPrefs.GetBool("globalEnable");
     }
     void OnLostFocus()
     {
         EditorPrefs.SetFloat("sensitivity", sensitivity);
-        EditorPrefs.SetBool("globalDisable", globalDisable);
+        EditorPrefs.SetBool("globalEnable", globalEnable);
     }
     void OnDestroy()
     {
         EditorPrefs.SetFloat("sensitivity", sensitivity);
-        EditorPrefs.SetBool("globalDisable", globalDisable);
+        EditorPrefs.SetBool("globalEnable", globalEnable);
     }
 
     static moveObjectShortcut(){
@@ -58,7 +58,7 @@ public class moveObjectShortcut : EditorWindow {
 		SceneView.duringSceneGui -= OnSceneView;
 		SceneView.duringSceneGui += OnSceneView;
         if (EditorPrefs.HasKey("sensitivity")) sensitivity = EditorPrefs.GetFloat("sensitivity");
-        if (EditorPrefs.HasKey("globalDisable")) globalDisable = EditorPrefs.GetBool("globalDisable");
+        if (EditorPrefs.HasKey("globalEnable")) globalEnable = EditorPrefs.GetBool("globalEnable");
     }
 
     static void OnSceneView(SceneView sceneView) {
@@ -76,7 +76,7 @@ public class moveObjectShortcut : EditorWindow {
                 toolDisable = false;
                 break;
         }
-        if (!globalDisable && !toolDisable)
+        if (globalEnable && !toolDisable)
         {
             //Check for key presses
             if (e.type == EventType.KeyDown)
