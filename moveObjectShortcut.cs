@@ -11,7 +11,7 @@ public class moveObjectShortcut : EditorWindow {
     private static Vector2 lastMousePosition = Vector2.zero;
     public static float sensitivity = 0.01f;
     private static float _sensitivity = sensitivity;
-    public static bool globalDisable = false;
+    public static bool globalDisable = true;
     private static bool toolDisable = false;
 
     //Create Context Menu Entry
