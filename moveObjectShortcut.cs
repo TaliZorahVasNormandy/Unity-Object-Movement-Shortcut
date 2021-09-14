@@ -19,7 +19,9 @@ public class moveObjectShortcut : EditorWindow {
     {
         var window = (moveObjectShortcut)GetWindow(typeof(moveObjectShortcut));
         window.Show();
+
     }
+
     //Add Settings to Editor Menu
     void OnGUI()
     {
@@ -54,7 +56,9 @@ public class moveObjectShortcut : EditorWindow {
 		//avoid registering twice to the SceneGUI delegate
 		SceneView.duringSceneGui -= OnSceneView;
 		SceneView.duringSceneGui += OnSceneView;
-	}
+        if (EditorPrefs.HasKey("sensitivity")) sensitivity = EditorPrefs.GetFloat("sensitivity");
+        if (EditorPrefs.HasKey("globalDisable")) globalDisable = EditorPrefs.GetBool("globalDisable");
+    }
 
     static void OnSceneView(SceneView sceneView) {
         Event e = Event.current;
