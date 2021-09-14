@@ -12,6 +12,7 @@ public class moveObjectShortcut : EditorWindow {
     public static float sensitivity = 0.01f;
     private static float _sensitivity = sensitivity;
     public static bool globalDisable = false;
+    private static bool toolDisable = false;
 
     //Create Context Menu Entry
     [MenuItem("Tools/Move Object Shortcut")]
@@ -63,7 +64,19 @@ public class moveObjectShortcut : EditorWindow {
     static void OnSceneView(SceneView sceneView) {
         Event e = Event.current;
         //disable on global disable
-        if (!globalDisable)
+        switch (Tools.current)
+        {
+            case Tool.Rotate:
+                toolDisable = true;
+                break;
+            case Tool.Scale:
+                toolDisable = true;
+                break;
+            default:
+                toolDisable = false;
+                break;
+        }
+        if (!globalDisable && !toolDisable)
         {
             //Check for key presses
             if (e.type == EventType.KeyDown)
