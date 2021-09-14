@@ -1,10 +1,9 @@
-using System;
-using System.Collections;
 using UnityEngine;
 using UnityEditor;
 
 [InitializeOnLoad]
-public class moveObjectShortcut : EditorWindow {
+public class moveObjectShortcut : EditorWindow
+{
     private static bool ctrlHeld = false;
     private static bool shiftHeld = false;
     private static Vector2 mouseDelta = Vector2.zero;
@@ -20,7 +19,8 @@ public class moveObjectShortcut : EditorWindow {
     {
         var window = (moveObjectShortcut)GetWindow(typeof(moveObjectShortcut));
         window.Show();
-
+        if (EditorPrefs.HasKey("sensitivity")) sensitivity = EditorPrefs.GetFloat("sensitivity");
+        if (EditorPrefs.HasKey("globalDisable")) globalDisable = EditorPrefs.GetBool("globalDisable");
     }
 
     //Add Settings to Editor Menu
@@ -42,26 +42,28 @@ public class moveObjectShortcut : EditorWindow {
         if (EditorPrefs.HasKey("sensitivity")) sensitivity = EditorPrefs.GetFloat("sensitivity");
         if (EditorPrefs.HasKey("globalDisable")) globalDisable = EditorPrefs.GetBool("globalDisable");
     }
+
     void OnLostFocus()
     {
         EditorPrefs.SetFloat("sensitivity", sensitivity);
         EditorPrefs.SetBool("globalDisable", globalDisable);
     }
+
     void OnDestroy()
     {
         EditorPrefs.SetFloat("sensitivity", sensitivity);
         EditorPrefs.SetBool("globalDisable", globalDisable);
     }
 
-    static moveObjectShortcut(){
-		//avoid registering twice to the SceneGUI delegate
-		SceneView.duringSceneGui -= OnSceneView;
-		SceneView.duringSceneGui += OnSceneView;
-        if (EditorPrefs.HasKey("sensitivity")) sensitivity = EditorPrefs.GetFloat("sensitivity");
-        if (EditorPrefs.HasKey("globalDisable")) globalDisable = EditorPrefs.GetBool("globalDisable");
+    static moveObjectShortcut()
+    {
+        //avoid registering twice to the SceneGUI delegate
+        SceneView.duringSceneGui -= OnSceneView;
+        SceneView.duringSceneGui += OnSceneView;
     }
 
-    static void OnSceneView(SceneView sceneView) {
+    static void OnSceneView(SceneView sceneView)
+    {
         Event e = Event.current;
         //disable on global disable
         switch (Tools.current)
@@ -76,63 +78,47 @@ public class moveObjectShortcut : EditorWindow {
                 toolDisable = false;
                 break;
         }
-        if (!globalDisable && !toolDisable)
+
+        if (globalDisable || toolDisable) return;
+
+        ctrlHeld = e.GetKey(KeyCode.LeftControl);
+        shiftHeld = e.GetKey(KeyCode.LeftShift);
+
+        RealtimeDebugger.AddDebugProperty("Ctrl held", ctrlHeld);
+        RealtimeDebugger.AddDebugProperty("Shift held", shiftHeld);
+        RealtimeDebugger.AddDebugProperty("Mouse button", e.GetMouseButton(1));
+        RealtimeDebugger.AddDebugProperty("Mouse button down", e.GetMouseButtonDown(1));
+        RealtimeDebugger.AddDebugProperty("Mouse dragging", e.GetMouseButton(1));
+
+        if (shiftHeld == false && ctrlHeld == false) return;
+
+        if (e.GetMouseButtonDown(1))
         {
-            //Check for key presses
-            if (e.type == EventType.KeyDown)
+            lastMousePosition = e.mousePosition;
+            foreach (Transform trans in Selection.transforms)
             {
-                if (e.keyCode == KeyCode.LeftControl) ctrlHeld = true;
-                if (e.keyCode == KeyCode.LeftShift) shiftHeld = true;
-            }
-            else if (e.type == EventType.KeyUp)
-            {
-                if (e.keyCode == KeyCode.LeftControl) ctrlHeld = false;
-                if (e.keyCode == KeyCode.LeftShift) shiftHeld = false;
-            }
-            if (ctrlHeld && shiftHeld)
-            {
-                if (e.type == EventType.MouseDown)
-                {
-                    //get current mouse position as start position of the drag
-                    if (e.button == 1) lastMousePosition = e.mousePosition;
-                }
-                if (e.type == EventType.MouseDrag)
-                {
-                    //get mouse speed based on frame time
-                    mouseDelta = e.mousePosition - lastMousePosition;
-                    lastMousePosition = e.mousePosition;
-                    //move objects accordingly along axis
-                    if (e.button == 1) moveObject(mouseDelta, "y", sceneView);
-                }
-            }
-            else if (ctrlHeld)
-            {
-                if (e.type == EventType.MouseDown)
-                {
-                    if (e.button == 1) lastMousePosition = e.mousePosition;
-                }
-                if (e.type == EventType.MouseDrag)
-                {
-                    mouseDelta = e.mousePosition - lastMousePosition;
-                    lastMousePosition = e.mousePosition;
-                    if (e.button == 1) moveObject(mouseDelta, "x", sceneView);
-                }
-            }
-            else if (shiftHeld)
-            {
-                if (e.type == EventType.MouseDown)
-                {
-                    if (e.button == 1) lastMousePosition = e.mousePosition;
-                }
-                if (e.type == EventType.MouseDrag)
-                {
-                    mouseDelta = e.mousePosition - lastMousePosition;
-                    lastMousePosition = e.mousePosition;
-                    if (e.button == 1) moveObject(mouseDelta, "z", sceneView);
-                }
+                Undo.RegisterCompleteObjectUndo(trans,"Move objects");
             }
         }
-	}
+
+        if (e.GetMouseButton(1) && e.type == EventType.MouseDrag)
+        {
+            Debug.Log("Mouse being dragged");
+            //get mouse speed based on frame time
+            mouseDelta = e.mousePosition - lastMousePosition;
+            lastMousePosition = e.mousePosition;
+
+            string axis;
+            if (ctrlHeld && shiftHeld)
+                axis = "y";
+            else if (ctrlHeld)
+                axis = "x";
+            else
+                axis = "z";
+
+            moveObject(mouseDelta, axis, sceneView);
+        }
+    }
 
     private static void moveObject(Vector3 distance, string axis, SceneView sceneView)
     {
@@ -146,6 +132,7 @@ public class moveObjectShortcut : EditorWindow {
             float dist = Vector3.Distance(selection[0].transform.position, sceneView.camera.transform.position);
             _sensitivity = sensitivity * dist * 0.1f;
         }
+
         if (axis == "x")
         {
             distance.y = 0;
@@ -158,12 +145,13 @@ public class moveObjectShortcut : EditorWindow {
             distance.z = 0;
             distance.y = -distance.y;
         }
-        if (axis== "z")
+        if (axis == "z")
         {
             distance.y = 0;
             distance.z = distance.x;
             distance.x = 0;
         }
+
         distance = distance * _sensitivity;
         for (int i = 0; i < selection.Length; i++) selection[i].transform.position = selection[i].transform.position + distance;
         if (selection.Length > 0)
