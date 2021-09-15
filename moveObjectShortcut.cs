@@ -6,52 +6,58 @@ public class moveObjectShortcut : EditorWindow
 {
     private static bool ctrlHeld = false;
     private static bool shiftHeld = false;
+    private static bool altHeld = false;
     private static Vector2 mouseDelta = Vector2.zero;
     private static Vector2 lastMousePosition = Vector2.zero;
     public static float sensitivity = 0.01f;
     private static float _sensitivity = sensitivity;
     public static bool globalDisable = true;
     private static bool toolDisable = false;
+    private static bool precisionMode = false;
+    public static float sensitivityMult = 0.25f;
 
     //Create Context Menu Entry
     [MenuItem("Tools/Move Object Shortcut")]
     static void Init()
     {
+        Debug.Log("Init " + globalDisable);
         var window = (moveObjectShortcut)GetWindow(typeof(moveObjectShortcut));
         window.Show();
-        if (EditorPrefs.HasKey("sensitivity")) sensitivity = EditorPrefs.GetFloat("sensitivity");
-        if (EditorPrefs.HasKey("globalDisable")) globalDisable = EditorPrefs.GetBool("globalDisable");
     }
 
     //Add Settings to Editor Menu
     void OnGUI()
     {
         EditorGUILayout.LabelField("This tool allows you to move any selected objects");
-        EditorGUILayout.LabelField("without having to grab its pivot handles");
+        EditorGUILayout.LabelField("without having to grab its pivot handles.");
         EditorGUILayout.LabelField("Usage:");
         EditorGUILayout.LabelField("CTRL + Right-click drag:        X-Axis");
         EditorGUILayout.LabelField("Shift + Right-click drag:        Z-Axis");
         EditorGUILayout.LabelField("CTRL + Shift + Right-click drag:        Y-Axis");
         EditorGUILayout.LabelField("");
         sensitivity = EditorGUILayout.FloatField("Sensitivity", sensitivity);
+        sensitivityMult = EditorGUILayout.FloatField("Precision mode", sensitivityMult);
         globalDisable = EditorGUILayout.Toggle("Disable all Shortcuts", globalDisable);
     }
     //Recall and save settings into Editor Prefs
     void OnFocus()
     {
         if (EditorPrefs.HasKey("sensitivity")) sensitivity = EditorPrefs.GetFloat("sensitivity");
+        if (EditorPrefs.HasKey("sensitivityMult")) sensitivityMult = EditorPrefs.GetFloat("sensitivityMult");
         if (EditorPrefs.HasKey("globalDisable")) globalDisable = EditorPrefs.GetBool("globalDisable");
     }
 
     void OnLostFocus()
     {
         EditorPrefs.SetFloat("sensitivity", sensitivity);
+        EditorPrefs.SetFloat("sensitivityMult", sensitivityMult);
         EditorPrefs.SetBool("globalDisable", globalDisable);
     }
 
     void OnDestroy()
     {
         EditorPrefs.SetFloat("sensitivity", sensitivity);
+        EditorPrefs.SetFloat("sensitivityMult", sensitivityMult);
         EditorPrefs.SetBool("globalDisable", globalDisable);
     }
 
@@ -60,6 +66,10 @@ public class moveObjectShortcut : EditorWindow
         //avoid registering twice to the SceneGUI delegate
         SceneView.duringSceneGui -= OnSceneView;
         SceneView.duringSceneGui += OnSceneView;
+        //Recall settings on startup not just init
+        if (EditorPrefs.HasKey("sensitivity")) sensitivity = EditorPrefs.GetFloat("sensitivity");
+        if (EditorPrefs.HasKey("sensitivityMult")) sensitivityMult = EditorPrefs.GetFloat("sensitivityMult");
+        if (EditorPrefs.HasKey("globalDisable")) globalDisable = EditorPrefs.GetBool("globalDisable");
     }
 
     static void OnSceneView(SceneView sceneView)
@@ -83,12 +93,7 @@ public class moveObjectShortcut : EditorWindow
 
         ctrlHeld = e.GetKey(KeyCode.LeftControl);
         shiftHeld = e.GetKey(KeyCode.LeftShift);
-
-        RealtimeDebugger.AddDebugProperty("Ctrl held", ctrlHeld);
-        RealtimeDebugger.AddDebugProperty("Shift held", shiftHeld);
-        RealtimeDebugger.AddDebugProperty("Mouse button", e.GetMouseButton(1));
-        RealtimeDebugger.AddDebugProperty("Mouse button down", e.GetMouseButtonDown(1));
-        RealtimeDebugger.AddDebugProperty("Mouse dragging", e.GetMouseButton(1));
+        altHeld = e.GetKey(KeyCode.LeftAlt);
 
         if (shiftHeld == false && ctrlHeld == false) return;
 
@@ -103,7 +108,6 @@ public class moveObjectShortcut : EditorWindow
 
         if (e.GetMouseButton(1) && e.type == EventType.MouseDrag)
         {
-            Debug.Log("Mouse being dragged");
             //get mouse speed based on frame time
             mouseDelta = e.mousePosition - lastMousePosition;
             lastMousePosition = e.mousePosition;
@@ -115,6 +119,9 @@ public class moveObjectShortcut : EditorWindow
                 axis = "x";
             else
                 axis = "z";
+
+            if (altHeld) precisionMode = true;
+            else precisionMode = false;
 
             moveObject(mouseDelta, axis, sceneView);
         }
@@ -131,6 +138,7 @@ public class moveObjectShortcut : EditorWindow
         {
             float dist = Vector3.Distance(selection[0].transform.position, sceneView.camera.transform.position);
             _sensitivity = sensitivity * dist * 0.1f;
+            if (precisionMode) _sensitivity *= 0.25f;
         }
 
         if (axis == "x")
