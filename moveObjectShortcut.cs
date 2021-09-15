@@ -34,6 +34,7 @@ public class moveObjectShortcut : EditorWindow
         EditorGUILayout.LabelField("CTRL + Right-click drag:        X-Axis");
         EditorGUILayout.LabelField("Shift + Right-click drag:        Z-Axis");
         EditorGUILayout.LabelField("CTRL + Shift + Right-click drag:        Y-Axis");
+        EditorGUILayout.LabelField("Hold Alt for precision mode");
         EditorGUILayout.LabelField("");
         sensitivity = EditorGUILayout.FloatField("Sensitivity", sensitivity);
         sensitivityMult = EditorGUILayout.FloatField("Precision mode", sensitivityMult);
