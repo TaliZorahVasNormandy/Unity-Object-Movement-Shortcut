@@ -121,9 +121,6 @@ public class moveObjectShortcut : EditorWindow
             else
                 axis = "z";
 
-            if (altHeld) precisionMode = true;
-            else precisionMode = false;
-
             moveObject(mouseDelta, axis, sceneView);
         }
     }
@@ -160,6 +157,9 @@ public class moveObjectShortcut : EditorWindow
             distance.z = distance.x;
             distance.x = 0;
         }
+
+        if (altHeld) precisionMode = true;
+        else precisionMode = false;
 
         distance = distance * _sensitivity;
         for (int i = 0; i < selection.Length; i++) selection[i].transform.position = selection[i].transform.position + distance;
