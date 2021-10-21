@@ -96,32 +96,38 @@ public class moveObjectShortcut : EditorWindow
         shiftHeld = e.GetKey(KeyCode.LeftShift);
         altHeld = e.GetKey(KeyCode.LeftAlt);
 
-        if (shiftHeld == false && ctrlHeld == false) return;
+
+        if (shiftHeld == false && ctrlHeld == false && altHeld == false) return;
 
         if (e.GetMouseButtonDown(1))
         {
             lastMousePosition = e.mousePosition;
             foreach (Transform trans in Selection.transforms)
             {
-                Undo.RegisterCompleteObjectUndo(trans,"Move objects");
+                Undo.RegisterCompleteObjectUndo(trans, "Move objects");
             }
         }
 
         if (e.GetMouseButton(1) && e.type == EventType.MouseDrag)
         {
-            //get mouse speed based on frame time
-            mouseDelta = e.mousePosition - lastMousePosition;
-            lastMousePosition = e.mousePosition;
+            if (ctrlHeld || shiftHeld)
+            {
+                Debug.Log("Called");
+                //get mouse speed based on frame time
+                mouseDelta = e.mousePosition - lastMousePosition;
+                lastMousePosition = e.mousePosition;
 
-            string axis;
-            if (ctrlHeld && shiftHeld)
-                axis = "y";
-            else if (ctrlHeld)
-                axis = "x";
-            else
-                axis = "z";
+                string axis;
+                if (ctrlHeld && shiftHeld)
+                    axis = "y";
+                else if (ctrlHeld)
+                    axis = "x";
+                else
+                    axis = "z";
 
-            moveObject(mouseDelta, axis, sceneView);
+                moveObject(mouseDelta, axis, sceneView);
+            }
+            else return;
         }
     }
 
